@@ -7,9 +7,9 @@ const App = () => {
   const [code, setCode] = useState('');  // Empty code to be filled
   const [userInput, setUserInput] = useState('');  // Input from user
   const [timer, setTimer] = useState(5);  // Timer starts at 5 seconds
-  const [extraTime, setExtraTime] = useState(0); // Extra time for typing the input
   const [gameStatus, setGameStatus] = useState('ongoing');  // Game status: ongoing, won, lost
   const [isCodeVisible, setIsCodeVisible] = useState(true);  // Whether to show the code or not
+  const [isInputDisabled, setIsInputDisabled] = useState(true); // Disable input until timer ends
 
   // Function to generate a random code of a certain length based on the level
   const generateCode = (length) => {
@@ -23,7 +23,7 @@ const App = () => {
 
   // Start the game when the component mounts
   useEffect(() => {
-    const newCode = generateCode(level + 2);  // Generate a code based on the current level
+    const newCode = generateCode(level + 4);  // Generate a code based on the current level
     setCode(newCode);
 
     // Start the initial 5-second timer countdown
@@ -32,7 +32,7 @@ const App = () => {
         if (prevTimer <= 1) {
           clearInterval(timerInterval);  // Stop the timer when it hits 0
           setIsCodeVisible(false);  // Hide the code after the timer is up
-          setExtraTime(5);  // Start extra time for user to input their code
+          setIsInputDisabled(false);  // Enable input after the timer ends
           return 0;
         }
         return prevTimer - 1;
@@ -41,24 +41,6 @@ const App = () => {
 
     return () => clearInterval(timerInterval);  // Cleanup the interval when component unmounts
   }, [level]);
-
-  // Start the extra 5-second timer for input after the code disappears
-  useEffect(() => {
-    if (extraTime > 0) {
-      const extraTimeInterval = setInterval(() => {
-        setExtraTime((prevTime) => {
-          if (prevTime <= 1) {
-            clearInterval(extraTimeInterval);  // Stop the extra time when it hits 0
-            checkInput();  // Check user input after extra time is over
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000); // Decrease the timer every second
-
-      return () => clearInterval(extraTimeInterval);  // Cleanup the interval when component unmounts
-    }
-  }, [extraTime]);
 
   // Function to check if the user input is correct
   const checkInput = () => {
@@ -70,8 +52,8 @@ const App = () => {
         setLevel(level + 1);  // Move to the next level
         setUserInput('');  // Reset the input field
         setIsCodeVisible(true);  // Show code again for next level
-        setExtraTime(0); // Reset extra time
         setTimer(5); // Reset the initial timer to 5 seconds
+        setIsInputDisabled(true); // Disable input again for the next level
       }
     } else {
       setGameStatus('lost');  // User lost, reset the game
@@ -92,13 +74,15 @@ const App = () => {
       {/* Show the code during the first 5 seconds of the game */}
       {isCodeVisible && <p className="code">Code: {code}</p>}
 
-      <UserInput userInput={userInput} setUserInput={handleInputChange} />
-      <button onClick={checkInput} disabled={timer > 0 || extraTime > 0}>Submit</button>
+      <UserInput 
+        userInput={userInput} 
+        setUserInput={handleInputChange} 
+        disabled={isInputDisabled} 
+      />
+      <button onClick={checkInput} disabled={isInputDisabled}>Submit</button>
 
       {gameStatus === 'won' && <p className="status-message" style={{color: 'green'}}>You won the game!</p>}
       {gameStatus === 'lost' && <p className="status-message" style={{color: 'red'}}>Game Over! Try again.</p>}
-
-      {extraTime > 0 && <p className="time">Extra Time Left: {extraTime}s</p>} {/* Show the extra time */}
     </div>
   );
 };
