@@ -10,6 +10,7 @@ const App = () => {
   const [gameStatus, setGameStatus] = useState('ongoing');  // Game status: ongoing, won, lost
   const [isCodeVisible, setIsCodeVisible] = useState(true);  // Whether to show the code or not
   const [isInputDisabled, setIsInputDisabled] = useState(true); // Disable input until timer ends
+  const [isInputVisible, setIsInputVisible] = useState(false); // Hide input initially
 
   // Function to generate a random code of a certain length based on the level
   const generateCode = (length) => {
@@ -33,6 +34,7 @@ const App = () => {
           clearInterval(timerInterval);  // Stop the timer when it hits 0
           setIsCodeVisible(false);  // Hide the code after the timer is up
           setIsInputDisabled(false);  // Enable input after the timer ends
+          setIsInputVisible(true);  // Show the input field after the timer ends
           return 0;
         }
         return prevTimer - 1;
@@ -54,6 +56,7 @@ const App = () => {
         setIsCodeVisible(true);  // Show code again for next level
         setTimer(5); // Reset the initial timer to 5 seconds
         setIsInputDisabled(true); // Disable input again for the next level
+        setIsInputVisible(false); // Hide input until the timer ends again
       }
     } else {
       setGameStatus('lost');  // User lost, reset the game
@@ -74,12 +77,17 @@ const App = () => {
       {/* Show the code during the first 5 seconds of the game */}
       {isCodeVisible && <p className="code">Code: {code}</p>}
 
-      <UserInput 
-        userInput={userInput} 
-        setUserInput={handleInputChange} 
-        disabled={isInputDisabled} 
-      />
-      <button onClick={checkInput} disabled={isInputDisabled}>Submit</button>
+      {/* Show the input field only after the timer finishes */}
+      {isInputVisible && (
+        <>
+          <UserInput 
+            userInput={userInput} 
+            setUserInput={handleInputChange} 
+            disabled={isInputDisabled} 
+          />
+          <button onClick={checkInput} disabled={isInputDisabled}>Submit</button>
+        </>
+      )}
 
       {gameStatus === 'won' && <p className="status-message" style={{color: 'green'}}>You won the game!</p>}
       {gameStatus === 'lost' && <p className="status-message" style={{color: 'red'}}>Game Over! Try again.</p>}
